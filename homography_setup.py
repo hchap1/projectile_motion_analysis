@@ -2,12 +2,15 @@
 
 import cv2
 import numpy as np
+import os
 
 
 class HomographyPlane:
     """
     Handles homography from image space -> real-world mm plane.
     """
+
+    CACHE_FILE = "homography_calibration.npz"
 
     def __init__(self, width_mm, height_mm):
         self.width_mm = float(width_mm)
@@ -16,10 +19,32 @@ class HomographyPlane:
 
         # Pre-build destination points once
         self._dst = np.array([
-            [0, self.height_mm],           # Bottom Left
+            [0, self.height_mm],              # Bottom Left
             [self.width_mm, self.height_mm],  # Bottom Right
-            [self.width_mm, 0],            # Top Right
-            [0, 0]                         # Top Left
+            [self.width_mm, 0],               # Top Right
+            [0, 0]                            # Top Left
+        ], dtype=np.float32)
+
+    def _save_calibration(self):
+        np.savez(
+            self.CACHE_FILE,
+            H=self.H,
+            width_mm=self.width_mm,
+            height_mm=self.height_mm
+        )
+
+    def _load_calibration(self):
+        data = np.load(self.CACHE_FILE)
+        self.H = data["H"]
+        self.width_mm = float(data["width_mm"])
+        self.height_mm = float(data["height_mm"])
+
+        # rebuild destination points in case dimensions changed
+        self._dst = np.array([
+            [0, self.height_mm],
+            [self.width_mm, self.height_mm],
+            [self.width_mm, 0],
+            [0, 0]
         ], dtype=np.float32)
 
     def calibrate_from_camera(self, cap):
@@ -31,6 +56,20 @@ class HomographyPlane:
             Top Left
         Press ENTER when done.
         """
+
+        # ----- Check for cached calibration -----
+        if os.path.exists(self.CACHE_FILE):
+            choice = input(
+                "Cached homography found. Press ENTER to use it,\n"
+                "or type anything to recalibrate: "
+            )
+
+            if choice.strip() == "":
+                self._load_calibration()
+                print("Loaded cached homography.")
+                return
+            else:
+                print("Recalibrating...")
 
         prompts = ["Bottom Left", "Bottom Right", "Top Right", "Top Left"]
         points = []
@@ -71,8 +110,15 @@ class HomographyPlane:
 
         cv2.destroyWindow("Calibrate Plane")
 
+        if len(points) != 4:
+            raise RuntimeError("Calibration aborted before 4 points were selected.")
+
         src = np.array(points, dtype=np.float32)
         self.H = cv2.getPerspectiveTransform(src, self._dst)
+
+        # Save calibration
+        self._save_calibration()
+        print("Calibration saved.")
 
     def warp(self, frame):
         """

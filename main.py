@@ -4,6 +4,7 @@ from time import perf_counter_ns
 from turtle import position
 from pygame import Vector2
 import time
+from math import degrees
 import cv2
 import numpy as np
 from homography_setup import HomographyPlane
@@ -78,10 +79,9 @@ def main():
             else: center = None
         else: center = None
 
-        if center != None: _ = cv2.circle(filtered, (center[0], center[1]), 100, (255, 255, 255), 5)
-        else: frames_since_last += 1
+        if center == None: frames_since_last += 1
         for point in points:
-            _ = cv2.circle(filtered, (point[0], point[1]), 100, (255, 255, 255), 5)
+            _ = cv2.circle(filtered, (point[0], point[1]), 20, (255, 255, 255), 5)
 
         cv2.imshow("Warped Plane", filtered)
 
@@ -94,9 +94,9 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-    rpm = float(input("RPM: "))
-    hood_angle = float(input("HOOD: "))
-    confirm = input("CONFIRM? [ENTER], anything else to exit.")
+    # rpm = float(input("RPM: "))
+    # hood_angle = float(input("HOOD: "))
+    # confirm = input("CONFIRM? [ENTER], anything else to exit.")
 
     if len(confirm) > 0: exit()
     
@@ -111,11 +111,11 @@ def main():
     distance_a = position_two - position_one
     distance_b = position_thr - position_two
 
-    speed_a = distance_a / (time_two - time_one)
-    speed_b = distance_b / (time_thr - time_two)
+    speed_a = distance_a.magnitude() / (time_two - time_one)
+    speed_b = distance_b.magnitude() / (time_thr - time_two)
 
     speed = (speed_a + speed_b) / 2
-    print(speed)
+    print(speed, distance_a.as_polar())
 
 if __name__ == "__main__":
     main()
