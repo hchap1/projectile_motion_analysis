@@ -41,41 +41,20 @@ class HomographyPlane:
         self.height_mm = float(data["height_mm"])
         self._rebuild_dst()
 
-    def _ask_dimensions(self):
+    def _recalibrate(self, cap):
+        """
+        Full recalibration:
+            - Ask width/height
+            - Click 4 points
+            - Compute homography
+            - Save cache
+        """
+
+        # Ask dimensions
         self.width_mm = float(input("Enter plane width (mm): "))
         self.height_mm = float(input("Enter plane height (mm): "))
         self._rebuild_dst()
 
-    def calibrate_from_camera(self, cap):
-        """
-        Click:
-            Bottom Left
-            Bottom Right
-            Top Right
-            Top Left
-        Press ENTER when done.
-        """
-
-        # ---- Handle cache ----
-        if os.path.exists(self.CACHE_FILE):
-            choice = input(
-                "Cached calibration found.\n"
-                "Press ENTER to use it,\n"
-                "or type anything to recalibrate: "
-            )
-
-            if choice.strip() == "":
-                self._load_calibration()
-                print("Loaded cached calibration.")
-                return
-            else:
-                print("Recalibrating...")
-                self._ask_dimensions()
-        else:
-            print("No cached calibration found.")
-            self._ask_dimensions()
-
-        # ---- Manual calibration ----
         prompts = ["Bottom Left", "Bottom Right", "Top Right", "Top Left"]
         points = []
         idx = 0
@@ -123,6 +102,29 @@ class HomographyPlane:
 
         self._save_calibration()
         print("Calibration saved.")
+
+    def calibrate_from_camera(self, cap):
+        """
+        Main entry point.
+        """
+
+        if os.path.exists(self.CACHE_FILE):
+            choice = input(
+                "Cached calibration found.\n"
+                "Press ENTER to use it,\n"
+                "or type anything to recalibrate: "
+            )
+
+            if choice.strip() == "":
+                self._load_calibration()
+                print("Loaded cached calibration.")
+                return
+            else:
+                print("Recalibrating...")
+                self._recalibrate(cap)
+        else:
+            print("No cached calibration found. Starting calibration...")
+            self._recalibrate(cap)
 
     def warp(self, frame):
         return cv2.warpPerspective(

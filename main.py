@@ -20,8 +20,6 @@ frames_since_last = 0
 def main():
     global frames_since_last, points, started
 
-    start_time = None
-    width_mm = float(input("Plane width (mm): "))
     height_mm = float(input("Plane height (mm): "))
 
     cap = cv2.VideoCapture(0)
@@ -34,7 +32,7 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    plane = HomographyPlane(width_mm, height_mm)
+    plane = HomographyPlane()
     plane.calibrate_from_camera(cap)
 
     print("Running. Press ESC to exit.")
