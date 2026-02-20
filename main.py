@@ -98,7 +98,7 @@ def main():
     # hood_angle = float(input("HOOD: "))
     # confirm = input("CONFIRM? [ENTER], anything else to exit.")
 
-    if len(confirm) > 0: exit()
+    # if len(confirm) > 0: exit()
     
     position_one = Vector2(points[0][0], points[0][1])
     position_two = Vector2(points[1][0], points[1][1])
