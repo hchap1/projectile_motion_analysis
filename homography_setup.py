@@ -120,3 +120,6 @@ class HomographyPlane:
         pts = np.array(pts, dtype=np.float32).reshape(-1, 1, 2)
         real = cv2.perspectiveTransform(pts, self.H)
         return real.reshape(-1, 2)
+
+    def flip_y(self, y: float) -> float:
+        return self.height_mm - y
