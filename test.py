@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 # -----------------------
 # Physics parameters
 # -----------------------
-g = 980.0  # gravity (upwards positive)
+g = 9800.0  # gravity (upwards positive)
 
 launch_pos = (150, 500)
 target_pos = (850, 350)
